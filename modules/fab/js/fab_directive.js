@@ -34,7 +34,10 @@
     function LxFabController()
     {
         var lxFab = this;
-
+        lxFab.isActive = false;
+        lxFab.activeButton = function(){
+            lxFab.isActive = !lxFab.isActive;
+        };
         lxFab.setFabDirection = setFabDirection;
 
         ////////////
