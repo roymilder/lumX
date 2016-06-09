@@ -1698,6 +1698,84 @@
     'use strict';
 
     angular
+        .module('lumx.fab')
+        .directive('lxFab', lxFab)
+        .directive('lxFabTrigger', lxFabTrigger)
+        .directive('lxFabActions', lxFabActions);
+
+    function lxFab()
+    {
+        return {
+            restrict: 'E',
+            templateUrl: 'fab.html',
+            scope: true,
+            link: link,
+            controller: LxFabController,
+            controllerAs: 'lxFab',
+            bindToController: true,
+            transclude: true,
+            replace: true
+        };
+
+        function link(scope, element, attrs, ctrl)
+        {
+            attrs.$observe('lxDirection', function(newDirection)
+            {
+                ctrl.setFabDirection(newDirection);
+            });
+        }
+    }
+
+    function LxFabController()
+    {
+        var lxFab = this;
+        lxFab.isActive = false;
+        lxFab.activeButton = function(){
+            lxFab.isActive = !lxFab.isActive;
+        };
+        lxFab.setFabDirection = setFabDirection;
+
+        ////////////
+
+        function setFabDirection(_direction)
+        {
+            lxFab.lxDirection = _direction;
+        }
+    }
+
+    function lxFabTrigger()
+    {
+        return {
+            restrict: 'E',
+            require: '^lxFab',
+            templateUrl: 'fab-trigger.html',
+            transclude: true,
+            replace: true
+        };
+    }
+
+    function lxFabActions()
+    {
+        return {
+            restrict: 'E',
+            require: '^lxFab',
+            templateUrl: 'fab-actions.html',
+            link: link,
+            transclude: true,
+            replace: true
+        };
+
+        function link(scope, element, attrs, ctrl)
+        {
+            scope.parentCtrl = ctrl;
+        }
+    }
+})();
+(function()
+{
+    'use strict';
+
+    angular
         .module('lumx.file-input')
         .directive('lxFileInput', lxFileInput);
 
@@ -1783,84 +1861,6 @@
             }
 
             timer = $timeout(setFileName);
-        }
-    }
-})();
-(function()
-{
-    'use strict';
-
-    angular
-        .module('lumx.fab')
-        .directive('lxFab', lxFab)
-        .directive('lxFabTrigger', lxFabTrigger)
-        .directive('lxFabActions', lxFabActions);
-
-    function lxFab()
-    {
-        return {
-            restrict: 'E',
-            templateUrl: 'fab.html',
-            scope: true,
-            link: link,
-            controller: LxFabController,
-            controllerAs: 'lxFab',
-            bindToController: true,
-            transclude: true,
-            replace: true
-        };
-
-        function link(scope, element, attrs, ctrl)
-        {
-            attrs.$observe('lxDirection', function(newDirection)
-            {
-                ctrl.setFabDirection(newDirection);
-            });
-        }
-    }
-
-    function LxFabController()
-    {
-        var lxFab = this;
-        lxFab.isActive = false;
-        lxFab.activeButton = function(){
-            lxFab.isActive = !lxFab.isActive;
-        };
-        lxFab.setFabDirection = setFabDirection;
-
-        ////////////
-
-        function setFabDirection(_direction)
-        {
-            lxFab.lxDirection = _direction;
-        }
-    }
-
-    function lxFabTrigger()
-    {
-        return {
-            restrict: 'E',
-            require: '^lxFab',
-            templateUrl: 'fab-trigger.html',
-            transclude: true,
-            replace: true
-        };
-    }
-
-    function lxFabActions()
-    {
-        return {
-            restrict: 'E',
-            require: '^lxFab',
-            templateUrl: 'fab-actions.html',
-            link: link,
-            transclude: true,
-            replace: true
-        };
-
-        function link(scope, element, attrs, ctrl)
-        {
-            scope.parentCtrl = ctrl;
         }
     }
 })();
@@ -1960,7 +1960,7 @@
         {
             var notifIndex = notificationList.indexOf(_notification);
 
-            var dnOffset = 24 + notificationList[notifIndex].height;
+            var dnOffset = angular.isDefined(notificationList[notifIndex]) ? 24 + notificationList[notifIndex].height : 24;
 
             for (var idx = 0; idx < notifIndex; idx++)
             {
@@ -1976,7 +1976,14 @@
             $timeout(function()
             {
                 _notification.elem.remove();
-                notificationList.splice(notifIndex, 1);
+
+                // Find index again because notificationList may have changed
+                notifIndex = notificationList.indexOf(_notification);
+
+                if (notifIndex != -1)
+                {
+                    notificationList.splice(notifIndex, 1);
+                }
             }, 400);
         }
 
@@ -2291,7 +2298,6 @@
         }
     }
 })();
-
 (function()
 {
     'use strict';
@@ -2752,6 +2758,152 @@
         {
             modelController = _modelControler;
         }
+    }
+})();
+(function()
+{
+    'use strict';
+
+    angular
+        .module('lumx.switch')
+        .directive('lxSwitch', lxSwitch)
+        .directive('lxSwitchLabel', lxSwitchLabel)
+        .directive('lxSwitchHelp', lxSwitchHelp);
+
+    function lxSwitch()
+    {
+        return {
+            restrict: 'E',
+            templateUrl: 'switch.html',
+            scope:
+            {
+                ngModel: '=',
+                name: '@?',
+                ngTrueValue: '@?',
+                ngFalseValue: '@?',
+                ngChange: '&?',
+                ngDisabled: '=?',
+                lxColor: '@?'
+            },
+            controller: LxSwitchController,
+            controllerAs: 'lxSwitch',
+            bindToController: true,
+            transclude: true,
+            replace: true
+        };
+    }
+
+    LxSwitchController.$inject = ['$scope', '$timeout', 'LxUtils'];
+
+    function LxSwitchController($scope, $timeout, LxUtils)
+    {
+        var lxSwitch = this;
+        var switchId;
+        var switchHasChildren;
+        var timer;
+
+        lxSwitch.getSwitchId = getSwitchId;
+        lxSwitch.getSwitchHasChildren = getSwitchHasChildren;
+        lxSwitch.setSwitchId = setSwitchId;
+        lxSwitch.setSwitchHasChildren = setSwitchHasChildren;
+        lxSwitch.triggerNgChange = triggerNgChange;
+
+        $scope.$on('$destroy', function()
+        {
+            $timeout.cancel(timer);
+        });
+
+        init();
+
+        ////////////
+
+        function getSwitchId()
+        {
+            return switchId;
+        }
+
+        function getSwitchHasChildren()
+        {
+            return switchHasChildren;
+        }
+
+        function init()
+        {
+            setSwitchId(LxUtils.generateUUID());
+            setSwitchHasChildren(false);
+
+            lxSwitch.ngTrueValue = angular.isUndefined(lxSwitch.ngTrueValue) ? true : lxSwitch.ngTrueValue;
+            lxSwitch.ngFalseValue = angular.isUndefined(lxSwitch.ngFalseValue) ? false : lxSwitch.ngFalseValue;
+            lxSwitch.lxColor = angular.isUndefined(lxSwitch.lxColor) ? 'accent' : lxSwitch.lxColor;
+        }
+
+        function setSwitchId(_switchId)
+        {
+            switchId = _switchId;
+        }
+
+        function setSwitchHasChildren(_switchHasChildren)
+        {
+            switchHasChildren = _switchHasChildren;
+        }
+
+        function triggerNgChange()
+        {
+            timer = $timeout(lxSwitch.ngChange);
+        }
+    }
+
+    function lxSwitchLabel()
+    {
+        return {
+            restrict: 'AE',
+            require: ['^lxSwitch', '^lxSwitchLabel'],
+            templateUrl: 'switch-label.html',
+            link: link,
+            controller: LxSwitchLabelController,
+            controllerAs: 'lxSwitchLabel',
+            bindToController: true,
+            transclude: true,
+            replace: true
+        };
+
+        function link(scope, element, attrs, ctrls)
+        {
+            ctrls[0].setSwitchHasChildren(true);
+            ctrls[1].setSwitchId(ctrls[0].getSwitchId());
+        }
+    }
+
+    function LxSwitchLabelController()
+    {
+        var lxSwitchLabel = this;
+        var switchId;
+
+        lxSwitchLabel.getSwitchId = getSwitchId;
+        lxSwitchLabel.setSwitchId = setSwitchId;
+
+        ////////////
+
+        function getSwitchId()
+        {
+            return switchId;
+        }
+
+        function setSwitchId(_switchId)
+        {
+            switchId = _switchId;
+        }
+    }
+
+    function lxSwitchHelp()
+    {
+        return {
+            restrict: 'AE',
+            require: '^lxSwitch',
+            templateUrl: 'switch-help.html',
+            transclude: true,
+            replace: true
+        };
     }
 })();
 (function()
@@ -3307,152 +3459,6 @@
     }
 })();
 
-(function()
-{
-    'use strict';
-
-    angular
-        .module('lumx.switch')
-        .directive('lxSwitch', lxSwitch)
-        .directive('lxSwitchLabel', lxSwitchLabel)
-        .directive('lxSwitchHelp', lxSwitchHelp);
-
-    function lxSwitch()
-    {
-        return {
-            restrict: 'E',
-            templateUrl: 'switch.html',
-            scope:
-            {
-                ngModel: '=',
-                name: '@?',
-                ngTrueValue: '@?',
-                ngFalseValue: '@?',
-                ngChange: '&?',
-                ngDisabled: '=?',
-                lxColor: '@?'
-            },
-            controller: LxSwitchController,
-            controllerAs: 'lxSwitch',
-            bindToController: true,
-            transclude: true,
-            replace: true
-        };
-    }
-
-    LxSwitchController.$inject = ['$scope', '$timeout', 'LxUtils'];
-
-    function LxSwitchController($scope, $timeout, LxUtils)
-    {
-        var lxSwitch = this;
-        var switchId;
-        var switchHasChildren;
-        var timer;
-
-        lxSwitch.getSwitchId = getSwitchId;
-        lxSwitch.getSwitchHasChildren = getSwitchHasChildren;
-        lxSwitch.setSwitchId = setSwitchId;
-        lxSwitch.setSwitchHasChildren = setSwitchHasChildren;
-        lxSwitch.triggerNgChange = triggerNgChange;
-
-        $scope.$on('$destroy', function()
-        {
-            $timeout.cancel(timer);
-        });
-
-        init();
-
-        ////////////
-
-        function getSwitchId()
-        {
-            return switchId;
-        }
-
-        function getSwitchHasChildren()
-        {
-            return switchHasChildren;
-        }
-
-        function init()
-        {
-            setSwitchId(LxUtils.generateUUID());
-            setSwitchHasChildren(false);
-
-            lxSwitch.ngTrueValue = angular.isUndefined(lxSwitch.ngTrueValue) ? true : lxSwitch.ngTrueValue;
-            lxSwitch.ngFalseValue = angular.isUndefined(lxSwitch.ngFalseValue) ? false : lxSwitch.ngFalseValue;
-            lxSwitch.lxColor = angular.isUndefined(lxSwitch.lxColor) ? 'accent' : lxSwitch.lxColor;
-        }
-
-        function setSwitchId(_switchId)
-        {
-            switchId = _switchId;
-        }
-
-        function setSwitchHasChildren(_switchHasChildren)
-        {
-            switchHasChildren = _switchHasChildren;
-        }
-
-        function triggerNgChange()
-        {
-            timer = $timeout(lxSwitch.ngChange);
-        }
-    }
-
-    function lxSwitchLabel()
-    {
-        return {
-            restrict: 'AE',
-            require: ['^lxSwitch', '^lxSwitchLabel'],
-            templateUrl: 'switch-label.html',
-            link: link,
-            controller: LxSwitchLabelController,
-            controllerAs: 'lxSwitchLabel',
-            bindToController: true,
-            transclude: true,
-            replace: true
-        };
-
-        function link(scope, element, attrs, ctrls)
-        {
-            ctrls[0].setSwitchHasChildren(true);
-            ctrls[1].setSwitchId(ctrls[0].getSwitchId());
-        }
-    }
-
-    function LxSwitchLabelController()
-    {
-        var lxSwitchLabel = this;
-        var switchId;
-
-        lxSwitchLabel.getSwitchId = getSwitchId;
-        lxSwitchLabel.setSwitchId = setSwitchId;
-
-        ////////////
-
-        function getSwitchId()
-        {
-            return switchId;
-        }
-
-        function setSwitchId(_switchId)
-        {
-            switchId = _switchId;
-        }
-    }
-
-    function lxSwitchHelp()
-    {
-        return {
-            restrict: 'AE',
-            require: '^lxSwitch',
-            templateUrl: 'switch-help.html',
-            transclude: true,
-            replace: true
-        };
-    }
-})();
 (function()
 {
     'use strict';
