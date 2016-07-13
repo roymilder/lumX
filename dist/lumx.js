@@ -1239,6 +1239,84 @@
     'use strict';
 
     angular
+        .module('lumx.fab')
+        .directive('lxFab', lxFab)
+        .directive('lxFabTrigger', lxFabTrigger)
+        .directive('lxFabActions', lxFabActions);
+
+    function lxFab()
+    {
+        return {
+            restrict: 'E',
+            templateUrl: 'fab.html',
+            scope: true,
+            link: link,
+            controller: LxFabController,
+            controllerAs: 'lxFab',
+            bindToController: true,
+            transclude: true,
+            replace: true
+        };
+
+        function link(scope, element, attrs, ctrl)
+        {
+            attrs.$observe('lxDirection', function(newDirection)
+            {
+                ctrl.setFabDirection(newDirection);
+            });
+        }
+    }
+
+    function LxFabController()
+    {
+        var lxFab = this;
+        lxFab.isActive = false;
+        lxFab.activeButton = function(){
+            lxFab.isActive = !lxFab.isActive;
+        };
+        lxFab.setFabDirection = setFabDirection;
+
+        ////////////
+
+        function setFabDirection(_direction)
+        {
+            lxFab.lxDirection = _direction;
+        }
+    }
+
+    function lxFabTrigger()
+    {
+        return {
+            restrict: 'E',
+            require: '^lxFab',
+            templateUrl: 'fab-trigger.html',
+            transclude: true,
+            replace: true
+        };
+    }
+
+    function lxFabActions()
+    {
+        return {
+            restrict: 'E',
+            require: '^lxFab',
+            templateUrl: 'fab-actions.html',
+            link: link,
+            transclude: true,
+            replace: true
+        };
+
+        function link(scope, element, attrs, ctrl)
+        {
+            scope.parentCtrl = ctrl;
+        }
+    }
+})();
+(function()
+{
+    'use strict';
+
+    angular
         .module('lumx.dropdown')
         .directive('lxDropdown', lxDropdown)
         .directive('lxDropdownToggle', lxDropdownToggle)
@@ -1698,84 +1776,6 @@
     'use strict';
 
     angular
-        .module('lumx.fab')
-        .directive('lxFab', lxFab)
-        .directive('lxFabTrigger', lxFabTrigger)
-        .directive('lxFabActions', lxFabActions);
-
-    function lxFab()
-    {
-        return {
-            restrict: 'E',
-            templateUrl: 'fab.html',
-            scope: true,
-            link: link,
-            controller: LxFabController,
-            controllerAs: 'lxFab',
-            bindToController: true,
-            transclude: true,
-            replace: true
-        };
-
-        function link(scope, element, attrs, ctrl)
-        {
-            attrs.$observe('lxDirection', function(newDirection)
-            {
-                ctrl.setFabDirection(newDirection);
-            });
-        }
-    }
-
-    function LxFabController()
-    {
-        var lxFab = this;
-        lxFab.isActive = false;
-        lxFab.activeButton = function(){
-            lxFab.isActive = !lxFab.isActive;
-        };
-        lxFab.setFabDirection = setFabDirection;
-
-        ////////////
-
-        function setFabDirection(_direction)
-        {
-            lxFab.lxDirection = _direction;
-        }
-    }
-
-    function lxFabTrigger()
-    {
-        return {
-            restrict: 'E',
-            require: '^lxFab',
-            templateUrl: 'fab-trigger.html',
-            transclude: true,
-            replace: true
-        };
-    }
-
-    function lxFabActions()
-    {
-        return {
-            restrict: 'E',
-            require: '^lxFab',
-            templateUrl: 'fab-actions.html',
-            link: link,
-            transclude: true,
-            replace: true
-        };
-
-        function link(scope, element, attrs, ctrl)
-        {
-            scope.parentCtrl = ctrl;
-        }
-    }
-})();
-(function()
-{
-    'use strict';
-
-    angular
         .module('lumx.file-input')
         .directive('lxFileInput', lxFileInput);
 
@@ -1921,6 +1921,61 @@
             }
 
             return iconClass;
+        }
+    }
+})();
+(function()
+{
+    'use strict';
+
+    angular
+        .module('lumx.progress')
+        .directive('lxProgress', lxProgress);
+
+    function lxProgress()
+    {
+        return {
+            restrict: 'E',
+            templateUrl: 'progress.html',
+            scope:
+            {
+                lxColor: '@?',
+                lxDiameter: '@?',
+                lxType: '@'
+            },
+            controller: LxProgressController,
+            controllerAs: 'lxProgress',
+            bindToController: true,
+            replace: true
+        };
+    }
+
+    function LxProgressController()
+    {
+        var lxProgress = this;
+
+        lxProgress.getProgressDiameter = getProgressDiameter;
+
+        init();
+
+        ////////////
+
+        function getProgressDiameter()
+        {
+            if (lxProgress.lxType === 'circular')
+            {
+                return {
+                    'transform': 'scale(' + parseInt(lxProgress.lxDiameter) / 100 + ')'
+                };
+            }
+
+            return;
+        }
+
+        function init()
+        {
+            lxProgress.lxDiameter = angular.isDefined(lxProgress.lxDiameter) ? lxProgress.lxDiameter : 100;
+            lxProgress.lxColor = angular.isDefined(lxProgress.lxColor) ? lxProgress.lxColor : 'primary';
         }
     }
 })();
@@ -2295,61 +2350,6 @@
                 dialogFilter.addClass('dialog-filter--is-shown');
                 dialog.addClass('dialog--is-shown');
             }, 100);
-        }
-    }
-})();
-(function()
-{
-    'use strict';
-
-    angular
-        .module('lumx.progress')
-        .directive('lxProgress', lxProgress);
-
-    function lxProgress()
-    {
-        return {
-            restrict: 'E',
-            templateUrl: 'progress.html',
-            scope:
-            {
-                lxColor: '@?',
-                lxDiameter: '@?',
-                lxType: '@'
-            },
-            controller: LxProgressController,
-            controllerAs: 'lxProgress',
-            bindToController: true,
-            replace: true
-        };
-    }
-
-    function LxProgressController()
-    {
-        var lxProgress = this;
-
-        lxProgress.getProgressDiameter = getProgressDiameter;
-
-        init();
-
-        ////////////
-
-        function getProgressDiameter()
-        {
-            if (lxProgress.lxType === 'circular')
-            {
-                return {
-                    'transform': 'scale(' + parseInt(lxProgress.lxDiameter) / 100 + ')'
-                };
-            }
-
-            return;
-        }
-
-        function init()
-        {
-            lxProgress.lxDiameter = angular.isDefined(lxProgress.lxDiameter) ? lxProgress.lxDiameter : 100;
-            lxProgress.lxColor = angular.isDefined(lxProgress.lxColor) ? lxProgress.lxColor : 'primary';
         }
     }
 })();
@@ -2758,152 +2758,6 @@
         {
             modelController = _modelControler;
         }
-    }
-})();
-(function()
-{
-    'use strict';
-
-    angular
-        .module('lumx.switch')
-        .directive('lxSwitch', lxSwitch)
-        .directive('lxSwitchLabel', lxSwitchLabel)
-        .directive('lxSwitchHelp', lxSwitchHelp);
-
-    function lxSwitch()
-    {
-        return {
-            restrict: 'E',
-            templateUrl: 'switch.html',
-            scope:
-            {
-                ngModel: '=',
-                name: '@?',
-                ngTrueValue: '@?',
-                ngFalseValue: '@?',
-                ngChange: '&?',
-                ngDisabled: '=?',
-                lxColor: '@?'
-            },
-            controller: LxSwitchController,
-            controllerAs: 'lxSwitch',
-            bindToController: true,
-            transclude: true,
-            replace: true
-        };
-    }
-
-    LxSwitchController.$inject = ['$scope', '$timeout', 'LxUtils'];
-
-    function LxSwitchController($scope, $timeout, LxUtils)
-    {
-        var lxSwitch = this;
-        var switchId;
-        var switchHasChildren;
-        var timer;
-
-        lxSwitch.getSwitchId = getSwitchId;
-        lxSwitch.getSwitchHasChildren = getSwitchHasChildren;
-        lxSwitch.setSwitchId = setSwitchId;
-        lxSwitch.setSwitchHasChildren = setSwitchHasChildren;
-        lxSwitch.triggerNgChange = triggerNgChange;
-
-        $scope.$on('$destroy', function()
-        {
-            $timeout.cancel(timer);
-        });
-
-        init();
-
-        ////////////
-
-        function getSwitchId()
-        {
-            return switchId;
-        }
-
-        function getSwitchHasChildren()
-        {
-            return switchHasChildren;
-        }
-
-        function init()
-        {
-            setSwitchId(LxUtils.generateUUID());
-            setSwitchHasChildren(false);
-
-            lxSwitch.ngTrueValue = angular.isUndefined(lxSwitch.ngTrueValue) ? true : lxSwitch.ngTrueValue;
-            lxSwitch.ngFalseValue = angular.isUndefined(lxSwitch.ngFalseValue) ? false : lxSwitch.ngFalseValue;
-            lxSwitch.lxColor = angular.isUndefined(lxSwitch.lxColor) ? 'accent' : lxSwitch.lxColor;
-        }
-
-        function setSwitchId(_switchId)
-        {
-            switchId = _switchId;
-        }
-
-        function setSwitchHasChildren(_switchHasChildren)
-        {
-            switchHasChildren = _switchHasChildren;
-        }
-
-        function triggerNgChange()
-        {
-            timer = $timeout(lxSwitch.ngChange);
-        }
-    }
-
-    function lxSwitchLabel()
-    {
-        return {
-            restrict: 'AE',
-            require: ['^lxSwitch', '^lxSwitchLabel'],
-            templateUrl: 'switch-label.html',
-            link: link,
-            controller: LxSwitchLabelController,
-            controllerAs: 'lxSwitchLabel',
-            bindToController: true,
-            transclude: true,
-            replace: true
-        };
-
-        function link(scope, element, attrs, ctrls)
-        {
-            ctrls[0].setSwitchHasChildren(true);
-            ctrls[1].setSwitchId(ctrls[0].getSwitchId());
-        }
-    }
-
-    function LxSwitchLabelController()
-    {
-        var lxSwitchLabel = this;
-        var switchId;
-
-        lxSwitchLabel.getSwitchId = getSwitchId;
-        lxSwitchLabel.setSwitchId = setSwitchId;
-
-        ////////////
-
-        function getSwitchId()
-        {
-            return switchId;
-        }
-
-        function setSwitchId(_switchId)
-        {
-            switchId = _switchId;
-        }
-    }
-
-    function lxSwitchHelp()
-    {
-        return {
-            restrict: 'AE',
-            require: '^lxSwitch',
-            templateUrl: 'switch-help.html',
-            transclude: true,
-            replace: true
-        };
     }
 })();
 (function()
@@ -3459,6 +3313,152 @@
     }
 })();
 
+(function()
+{
+    'use strict';
+
+    angular
+        .module('lumx.switch')
+        .directive('lxSwitch', lxSwitch)
+        .directive('lxSwitchLabel', lxSwitchLabel)
+        .directive('lxSwitchHelp', lxSwitchHelp);
+
+    function lxSwitch()
+    {
+        return {
+            restrict: 'E',
+            templateUrl: 'switch.html',
+            scope:
+            {
+                ngModel: '=',
+                name: '@?',
+                ngTrueValue: '@?',
+                ngFalseValue: '@?',
+                ngChange: '&?',
+                ngDisabled: '=?',
+                lxColor: '@?'
+            },
+            controller: LxSwitchController,
+            controllerAs: 'lxSwitch',
+            bindToController: true,
+            transclude: true,
+            replace: true
+        };
+    }
+
+    LxSwitchController.$inject = ['$scope', '$timeout', 'LxUtils'];
+
+    function LxSwitchController($scope, $timeout, LxUtils)
+    {
+        var lxSwitch = this;
+        var switchId;
+        var switchHasChildren;
+        var timer;
+
+        lxSwitch.getSwitchId = getSwitchId;
+        lxSwitch.getSwitchHasChildren = getSwitchHasChildren;
+        lxSwitch.setSwitchId = setSwitchId;
+        lxSwitch.setSwitchHasChildren = setSwitchHasChildren;
+        lxSwitch.triggerNgChange = triggerNgChange;
+
+        $scope.$on('$destroy', function()
+        {
+            $timeout.cancel(timer);
+        });
+
+        init();
+
+        ////////////
+
+        function getSwitchId()
+        {
+            return switchId;
+        }
+
+        function getSwitchHasChildren()
+        {
+            return switchHasChildren;
+        }
+
+        function init()
+        {
+            setSwitchId(LxUtils.generateUUID());
+            setSwitchHasChildren(false);
+
+            lxSwitch.ngTrueValue = angular.isUndefined(lxSwitch.ngTrueValue) ? true : lxSwitch.ngTrueValue;
+            lxSwitch.ngFalseValue = angular.isUndefined(lxSwitch.ngFalseValue) ? false : lxSwitch.ngFalseValue;
+            lxSwitch.lxColor = angular.isUndefined(lxSwitch.lxColor) ? 'accent' : lxSwitch.lxColor;
+        }
+
+        function setSwitchId(_switchId)
+        {
+            switchId = _switchId;
+        }
+
+        function setSwitchHasChildren(_switchHasChildren)
+        {
+            switchHasChildren = _switchHasChildren;
+        }
+
+        function triggerNgChange()
+        {
+            timer = $timeout(lxSwitch.ngChange);
+        }
+    }
+
+    function lxSwitchLabel()
+    {
+        return {
+            restrict: 'AE',
+            require: ['^lxSwitch', '^lxSwitchLabel'],
+            templateUrl: 'switch-label.html',
+            link: link,
+            controller: LxSwitchLabelController,
+            controllerAs: 'lxSwitchLabel',
+            bindToController: true,
+            transclude: true,
+            replace: true
+        };
+
+        function link(scope, element, attrs, ctrls)
+        {
+            ctrls[0].setSwitchHasChildren(true);
+            ctrls[1].setSwitchId(ctrls[0].getSwitchId());
+        }
+    }
+
+    function LxSwitchLabelController()
+    {
+        var lxSwitchLabel = this;
+        var switchId;
+
+        lxSwitchLabel.getSwitchId = getSwitchId;
+        lxSwitchLabel.setSwitchId = setSwitchId;
+
+        ////////////
+
+        function getSwitchId()
+        {
+            return switchId;
+        }
+
+        function setSwitchId(_switchId)
+        {
+            switchId = _switchId;
+        }
+    }
+
+    function lxSwitchHelp()
+    {
+        return {
+            restrict: 'AE',
+            require: '^lxSwitch',
+            templateUrl: 'switch-help.html',
+            transclude: true,
+            replace: true
+        };
+    }
+})();
 (function()
 {
     'use strict';
@@ -4038,21 +4038,19 @@
         }
     }
 })();
-(function()
-{
+(function () {
     'use strict';
 
     angular
         .module('lumx.tooltip')
         .directive('lxTooltip', lxTooltip);
 
-    function lxTooltip()
-    {
+    function lxTooltip() {
         return {
             restrict: 'A',
-            scope:
-            {
+            scope: {
                 tooltip: '@lxTooltip',
+                lxthis: '@lxThis',
                 position: '@?lxTooltipPosition'
             },
             link: link,
@@ -4061,12 +4059,9 @@
             bindToController: true
         };
 
-        function link(scope, element, attrs, ctrl)
-        {
-            if (angular.isDefined(attrs.tooltipPosition))
-            {
-                attrs.$observe('tooltipPosition', function(newValue)
-                {
+        function link(scope, element, attrs, ctrl) {
+            if (angular.isDefined(attrs.tooltipPosition)) {
+                attrs.$observe('tooltipPosition', function (newValue) {
                     scope.lxTooltip.position = newValue;
                 });
             }
@@ -4074,8 +4069,7 @@
             element.on('mouseenter', ctrl.showTooltip);
             element.on('mouseleave', ctrl.hideTooltip);
 
-            scope.$on('$destroy', function()
-            {
+            scope.$on('$destroy', function () {
                 element.off();
             });
         }
@@ -4083,8 +4077,7 @@
 
     LxTooltipController.$inject = ['$element', '$scope', '$timeout', 'LxDepthService'];
 
-    function LxTooltipController($element, $scope, $timeout, LxDepthService)
-    {
+    function LxTooltipController($element, $scope, $timeout, LxDepthService) {
         var lxTooltip = this;
         var timer1;
         var timer2;
@@ -4097,10 +4090,8 @@
 
         lxTooltip.position = angular.isDefined(lxTooltip.position) ? lxTooltip.position : 'top';
 
-        $scope.$on('$destroy', function()
-        {
-            if (angular.isDefined(tooltip))
-            {
+        $scope.$on('$destroy', function () {
+            if (angular.isDefined(tooltip)) {
                 tooltip.remove();
             }
 
@@ -4110,84 +4101,74 @@
 
         ////////////
 
-        function hideTooltip()
-        {
-            if (angular.isDefined(tooltip))
-            {
+        function hideTooltip() {
+            if (angular.isDefined(tooltip)) {
                 tooltip.removeClass('tooltip--is-active');
 
-                timer1 = $timeout(function()
-                {
+                timer1 = $timeout(function () {
                     tooltip.remove();
                 }, 200);
             }
         }
 
-        function setTooltipPosition()
-        {
+        function setTooltipPosition() {
             var width = $element.outerWidth(),
                 height = $element.outerHeight(),
                 top = $element.offset().top,
                 left = $element.offset().left;
-
             tooltip
                 .append(tooltipBackground)
                 .append(tooltipLabel)
-                .appendTo('body');
+                .appendTo((lxTooltip.lxthis) ? $element[0] : 'body');
 
-            if (lxTooltip.position === 'top')
-            {
+            if (lxTooltip.position === 'top') {
                 tooltip.css(
-                {
-                    left: left - (tooltip.outerWidth() / 2) + (width / 2),
-                    top: top - tooltip.outerHeight()
-                });
+                    {
+                        left: left - (tooltip.outerWidth() / 2) + (width / 2),
+                        top: top - tooltip.outerHeight()
+                    });
             }
-            else if (lxTooltip.position === 'bottom')
-            {
+            else if (lxTooltip.position === 'bottom') {
                 tooltip.css(
-                {
-                    left: left - (tooltip.outerWidth() / 2) + (width / 2),
-                    top: top + height
-                });
+                    {
+                        left: left - (tooltip.outerWidth() / 2) + (width / 2),
+                        top: top + height
+                    });
             }
-            else if (lxTooltip.position === 'left')
-            {
+            else if (lxTooltip.position === 'left') {
                 tooltip.css(
-                {
-                    left: left - tooltip.outerWidth(),
-                    top: top + (height / 2) - (tooltip.outerHeight() / 2)
-                });
+                    {
+                        left: left - tooltip.outerWidth(),
+                        top: top + (height / 2) - (tooltip.outerHeight() / 2)
+                    });
             }
-            else if (lxTooltip.position === 'right')
-            {
+            else if (lxTooltip.position === 'right') {
                 tooltip.css(
-                {
-                    left: left + width,
-                    top: top + (height / 2) - (tooltip.outerHeight() / 2)
-                });
+                    {
+                        left: left + width,
+                        top: top + (height / 2) - (tooltip.outerHeight() / 2)
+                    });
             }
         }
 
-        function showTooltip()
-        {
+        function showTooltip() {
             LxDepthService.register();
 
             tooltip = angular.element('<div/>',
-            {
-                class: 'tooltip tooltip--' + lxTooltip.position
-            });
+                {
+                    class: 'tooltip tooltip--' + lxTooltip.position
+                });
 
             tooltipBackground = angular.element('<div/>',
-            {
-                class: 'tooltip__background'
-            });
+                {
+                    class: 'tooltip__background'
+                });
 
             tooltipLabel = angular.element('<span/>',
-            {
-                class: 'tooltip__label',
-                text: lxTooltip.tooltip
-            });
+                {
+                    class: 'tooltip__label',
+                    text: lxTooltip.tooltip
+                });
 
             setTooltipPosition();
 
@@ -4195,10 +4176,9 @@
                 .append(tooltipBackground)
                 .append(tooltipLabel)
                 .css('z-index', LxDepthService.getDepth())
-                .appendTo('body');
+                .appendTo((lxTooltip.lxthis) ? $element[0] : 'body');
 
-            timer2 = $timeout(function()
-            {
+            timer2 = $timeout(function () {
                 tooltip.addClass('tooltip--is-active');
             });
         }
