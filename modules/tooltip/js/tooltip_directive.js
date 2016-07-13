@@ -1,18 +1,16 @@
-(function()
-{
+(function () {
     'use strict';
 
     angular
         .module('lumx.tooltip')
         .directive('lxTooltip', lxTooltip);
 
-    function lxTooltip()
-    {
+    function lxTooltip() {
         return {
             restrict: 'A',
-            scope:
-            {
+            scope: {
                 tooltip: '@lxTooltip',
+                lxthis: '@lxThis',
                 position: '@?lxTooltipPosition'
             },
             link: link,
@@ -21,12 +19,9 @@
             bindToController: true
         };
 
-        function link(scope, element, attrs, ctrl)
-        {
-            if (angular.isDefined(attrs.tooltipPosition))
-            {
-                attrs.$observe('tooltipPosition', function(newValue)
-                {
+        function link(scope, element, attrs, ctrl) {
+            if (angular.isDefined(attrs.tooltipPosition)) {
+                attrs.$observe('tooltipPosition', function (newValue) {
                     scope.lxTooltip.position = newValue;
                 });
             }
@@ -34,8 +29,7 @@
             element.on('mouseenter', ctrl.showTooltip);
             element.on('mouseleave', ctrl.hideTooltip);
 
-            scope.$on('$destroy', function()
-            {
+            scope.$on('$destroy', function () {
                 element.off();
             });
         }
@@ -43,8 +37,7 @@
 
     LxTooltipController.$inject = ['$element', '$scope', '$timeout', 'LxDepthService'];
 
-    function LxTooltipController($element, $scope, $timeout, LxDepthService)
-    {
+    function LxTooltipController($element, $scope, $timeout, LxDepthService) {
         var lxTooltip = this;
         var timer1;
         var timer2;
@@ -57,10 +50,8 @@
 
         lxTooltip.position = angular.isDefined(lxTooltip.position) ? lxTooltip.position : 'top';
 
-        $scope.$on('$destroy', function()
-        {
-            if (angular.isDefined(tooltip))
-            {
+        $scope.$on('$destroy', function () {
+            if (angular.isDefined(tooltip)) {
                 tooltip.remove();
             }
 
@@ -70,84 +61,74 @@
 
         ////////////
 
-        function hideTooltip()
-        {
-            if (angular.isDefined(tooltip))
-            {
+        function hideTooltip() {
+            if (angular.isDefined(tooltip)) {
                 tooltip.removeClass('tooltip--is-active');
 
-                timer1 = $timeout(function()
-                {
+                timer1 = $timeout(function () {
                     tooltip.remove();
                 }, 200);
             }
         }
 
-        function setTooltipPosition()
-        {
+        function setTooltipPosition() {
             var width = $element.outerWidth(),
                 height = $element.outerHeight(),
                 top = $element.offset().top,
                 left = $element.offset().left;
-
             tooltip
                 .append(tooltipBackground)
                 .append(tooltipLabel)
-                .appendTo('body');
+                .appendTo((lxTooltip.lxthis) ? $element[0] : 'body');
 
-            if (lxTooltip.position === 'top')
-            {
+            if (lxTooltip.position === 'top') {
                 tooltip.css(
-                {
-                    left: left - (tooltip.outerWidth() / 2) + (width / 2),
-                    top: top - tooltip.outerHeight()
-                });
+                    {
+                        left: left - (tooltip.outerWidth() / 2) + (width / 2),
+                        top: top - tooltip.outerHeight()
+                    });
             }
-            else if (lxTooltip.position === 'bottom')
-            {
+            else if (lxTooltip.position === 'bottom') {
                 tooltip.css(
-                {
-                    left: left - (tooltip.outerWidth() / 2) + (width / 2),
-                    top: top + height
-                });
+                    {
+                        left: left - (tooltip.outerWidth() / 2) + (width / 2),
+                        top: top + height
+                    });
             }
-            else if (lxTooltip.position === 'left')
-            {
+            else if (lxTooltip.position === 'left') {
                 tooltip.css(
-                {
-                    left: left - tooltip.outerWidth(),
-                    top: top + (height / 2) - (tooltip.outerHeight() / 2)
-                });
+                    {
+                        left: left - tooltip.outerWidth(),
+                        top: top + (height / 2) - (tooltip.outerHeight() / 2)
+                    });
             }
-            else if (lxTooltip.position === 'right')
-            {
+            else if (lxTooltip.position === 'right') {
                 tooltip.css(
-                {
-                    left: left + width,
-                    top: top + (height / 2) - (tooltip.outerHeight() / 2)
-                });
+                    {
+                        left: left + width,
+                        top: top + (height / 2) - (tooltip.outerHeight() / 2)
+                    });
             }
         }
 
-        function showTooltip()
-        {
+        function showTooltip() {
             LxDepthService.register();
 
             tooltip = angular.element('<div/>',
-            {
-                class: 'tooltip tooltip--' + lxTooltip.position
-            });
+                {
+                    class: 'tooltip tooltip--' + lxTooltip.position
+                });
 
             tooltipBackground = angular.element('<div/>',
-            {
-                class: 'tooltip__background'
-            });
+                {
+                    class: 'tooltip__background'
+                });
 
             tooltipLabel = angular.element('<span/>',
-            {
-                class: 'tooltip__label',
-                text: lxTooltip.tooltip
-            });
+                {
+                    class: 'tooltip__label',
+                    text: lxTooltip.tooltip
+                });
 
             setTooltipPosition();
 
@@ -155,10 +136,9 @@
                 .append(tooltipBackground)
                 .append(tooltipLabel)
                 .css('z-index', LxDepthService.getDepth())
-                .appendTo('body');
+                .appendTo((lxTooltip.lxthis) ? $element[0] : 'body');
 
-            timer2 = $timeout(function()
-            {
+            timer2 = $timeout(function () {
                 tooltip.addClass('tooltip--is-active');
             });
         }
